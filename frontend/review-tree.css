@@ -1,0 +1,59 @@
+#game-tree {
+  --a:#77e2d1;
+  --b:#ffc591;
+  --branch:#9aa9c4;
+  --line:#527482;
+  color:#eef3f8;
+  padding:clamp(12px,2.5vw,26px);
+  background:#13212a;
+}
+.tree-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:10px 24px;flex-wrap:wrap}
+.tree-heading h2{font-size:clamp(21px,3vw,28px);line-height:1.2;margin:0 0 6px}
+.tree-heading p{margin:0}
+.tree-legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#c0ced9}
+.tree-legend span{white-space:nowrap}
+.tree-legend span::before{content:"";display:inline-block;width:19px;margin-right:6px;border-top:2px solid var(--a);vertical-align:middle}
+.tree-legend span+span::before{border-top:2px dashed var(--branch)}
+.tree-switch{display:grid;grid-template-columns:repeat(var(--count),minmax(0,1fr));gap:8px;margin:18px 0 14px}
+#game-tree .tree-tab{border-color:#344c59;background:#172b36;text-align:left;padding:8px 11px;min-width:0}
+#game-tree .tree-tab[aria-pressed=true]{background:#203e45;border-color:#87cfc9}
+.tree-tab time,.tree-tab strong{display:block}
+.tree-tab time{font-size:12px;color:#acc9d2;font-variant-numeric:tabular-nums}
+.tree-tab strong{font-size:14px}
+.tree-board{background:#0e1c24;border:1px solid #2e4553;border-radius:10px;padding:12px 18px 16px}
+.tree-columns,.tree-diagram{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.72fr);column-gap:clamp(20px,5vw,63px)}
+.tree-columns{align-items:center;padding:5px 0 12px;border-bottom:1px solid #2d4350}
+.tree-player{color:var(--tone,var(--branch));min-width:0;font-size:13px;font-weight:650}
+.tree-side-a{--tone:var(--a)}
+.tree-side-b{--tone:var(--b)}
+.tree-player-letter{display:inline-grid;place-items:center;width:21px;height:21px;vertical-align:middle;margin-right:6px;background:#1e333e;border-radius:4px;color:var(--tone);font-size:11px}
+.tree-diagram{position:relative;row-gap:23px;padding-top:15px}
+.tree-diagram canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tree-card{z-index:1;display:block;min-width:0;align-self:center;text-align:left}
+#game-tree .tree-card{padding:8px 11px;border:1px solid #395560;border-radius:7px;background:#162b35;color:#edf5f7}
+#game-tree .tree-card:hover{background:#203845}
+#game-tree .tree-card[aria-pressed=true]{outline:2px solid var(--tone,#90bfcc);outline-offset:2px}
+.tree-card strong,.tree-card span{display:block}
+.tree-card strong{font-size:clamp(13px,1.5vw,16px);line-height:1.38;text-wrap:pretty}
+.tree-card span{color:var(--tone,#bbd5db);font-size:11px;letter-spacing:.025em;margin-bottom:2px}
+#game-tree .tree-action{box-shadow:inset 3px 0 var(--tone);padding-left:12px}
+.tree-action.tree-side-a{grid-column:1}
+.tree-action.tree-side-b{grid-column:2}
+#game-tree .tree-context,#game-tree .tree-outcome{grid-column:1 / 3;justify-self:center;width:min(100%,340px);text-align:center}
+#game-tree .tree-context{background:#192d39}
+#game-tree .tree-outcome{background:#1d383e;border-color:#648b88}
+#game-tree .tree-alternative{grid-column:3;grid-row:var(--fork-row);border:1px dashed #7786a2;background:#172631}
+.tree-alternative span{color:#bdc8df}
+.tree-details{display:flex;gap:8px 18px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:13px;border-top:1px solid #2d4350;padding:10px 1px 0}
+.tree-details div{flex:1 1 270px}
+.tree-details p{margin:3px 0 0;color:#bdcdd7;font-size:13px}
+.tree-details button{font-size:13px}
+@media(max-width:680px){
+  .tree-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tree-board{padding:9px 10px 13px}
+  .tree-columns,.tree-diagram{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;padding-right:9px}
+  .tree-columns .tree-bench{display:none}
+  .tree-player{font-size:12px}
+  .tree-diagram{row-gap:21px}
+  #game-tree .tree-alternative{grid-column:2;grid-row:var(--mobile-row)}
+}

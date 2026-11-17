@@ -1,0 +1,27 @@
+.feature{margin-top:32px;padding:16px;background:#1a242f;border:1px solid #334254;border-radius:10px;scroll-margin-top:10px}
+.view-links a{padding:5px 11px;border:1px solid #40556b;border-radius:6px;text-decoration:none}
+.events #events{max-height:680px;overflow:auto;padding-right:4px}
+.feature h2:first-child{margin-top:0}
+.legend{display:flex;gap:8px 16px;flex-wrap:wrap;margin:10px 0}
+.legend span:before{content:'';display:inline-block;width:10px;height:8px;margin-right:5px;border-radius:2px;background:var(--key)}
+.known{--key:#54cee0}.timer{--key:#e2a762}.color{--key:#a0aab9}.cool{--key:#766846}.grey{--key:#4a5363}.hp-a{--key:#56d0e0}.hp-b{--key:#ffb078}
+.toggle{display:block;margin-bottom:9px}
+.rail{overflow-x:auto;border:1px solid #384656;border-radius:6px;margin:8px 0}
+#gantt{min-width:800px;padding:6px 12px}
+.graphic-row{display:grid;grid-template-columns:105px minmax(0,1fr);align-items:center;min-height:31px;border-bottom:1px solid #364654}
+.graphic-row.group-start{border-top:2px solid #526777}
+.graphic-row>span{font-size:13px}
+.track{position:relative;height:27px}
+.track-tick,.track-state,.track-mark{position:absolute}
+.track-tick{font-size:11px;color:#b7c7d3;top:0;transform:translateX(-50%)}
+.track-state{height:7px;top:12px;background:var(--key);border-radius:2px;pointer-events:none}
+.track-mark{top:4px;height:20px;min-width:8px;padding:0;border:0;border-radius:3px;background:var(--key);transform:translateX(-3px)}
+.track-mark:focus,.track-mark:hover{outline:2px solid #eef3fa;z-index:1}
+.track-mark.known{z-index:1}.track-mark.timer{height:15px;top:6px}.track-mark.color{height:10px;top:8px}
+#health{width:100%;min-width:800px;height:230px;display:block;cursor:crosshair}
+#marker-detail{min-height:44px}#marker-detail button{margin-top:4px}
+.outcome{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:8px;margin:8px 0}
+.outcome div{background:#202e3c;border-radius:5px;padding:5px 8px}.outcome dt{color:#afbecc;font-size:12px}.outcome dd{margin:0}
+.audit-scroll{overflow-x:auto}
+#audit table{width:100%;border-collapse:collapse;text-align:left;margin:10px 0}
+#audit td,#audit th{padding:6px 10px;border-bottom:1px solid #415464;vertical-align:top}

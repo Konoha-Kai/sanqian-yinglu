@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>三千影录 · 决斗场复盘</title>
+  <style>
+    :root{color-scheme:dark;font:15px/1.55 Inter,system-ui,"Microsoft YaHei",sans-serif;color:#e8edf4;background:#111820}
+    *{box-sizing:border-box}body{max-width:1240px;margin:auto;padding:24px}h1{margin:0;font-size:clamp(24px,4vw,38px)}h2{font-size:18px;margin:20px 0 6px}p{margin:5px 0 12px}.muted,small{color:#afbecc}a{color:#91d9e9}
+    main{display:grid;grid-template-columns:minmax(0,1.13fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:16px}.panel{position:sticky;top:16px;background:#1a242f;border:1px solid #334254;border-radius:10px;padding:12px}video{display:block;width:100%;border-radius:5px;background:#070b0f;aspect-ratio:20/9}nav{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+    button{font:inherit;color:inherit;background:#202e3c;border:1px solid #40556b;border-radius:6px;cursor:pointer;padding:5px 10px}button[aria-pressed="true"]{border-color:#87d8e8;background:#253f4c}.event{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0}.event strong{display:block}.event small{display:block;margin-top:3px}.time{color:#91d9e9;font-variant-numeric:tabular-nums}.details{min-height:110px}.details h2{margin-top:12px}.source a{display:inline-block;margin-right:10px}.events h2{margin-top:0}.resources{padding-top:10px;border-top:1px solid #364658}.resources p{margin:5px 0}.method{margin-top:24px;border-top:1px solid #405163;padding-top:12px}
+    @media(max-width:850px){body{padding:14px}main{grid-template-columns:1fr;gap:12px}.panel{position:static}}
+  </style>
+  <link rel="stylesheet" href="review-layers.css">
+  <link rel="stylesheet" href="review-tree.css">
+</head>
+<body>
+  <header>
+    <h1>三千影录 · 决斗场复盘</h1>
+    <p class="muted">下方时间为原视频秒数。点击事件可以跳回录像。</p>
+    <nav class="view-links" aria-label="页面内容">
+      <a href="#replay">录像和重点出招</a><a href="#timeline">技能甘特图和血条</a><a href="#game-tree">双方博弈树</a>
+    </nav>
+    <nav id="rounds" aria-label="选择回合"></nav>
+    <p id="match"></p>
+  </header>
+  <main id="replay">
+    <section class="panel" aria-label="录像与证据">
+      <video id="video" controls playsinline preload="metadata" src="replay.mp4"></video>
+      <div id="detail" class="details" aria-live="polite"></div>
+      <div id="sources" class="source muted"></div>
+    </section>
+    <section class="events" aria-label="交手记录">
+      <h2>重点出招与效果</h2>
+      <div id="events"></div>
+    </section>
+  </main>
+  <section id="timeline" class="feature">
+    <h2>双方技能甘特图</h2>
+    <p class="muted">技能、秘卷、通灵、替身分槽记录。底条表示 HUD 状态，蓝色横条表示需要连着回看的动作过程，单点线索用刻度表示。点击标记查看证据。</p>
+    <div class="legend"><span class="known">复核动作</span><span class="timer">倒计时线索</span><span class="color">颜色候选</span><span class="cool">疑似冷却</span><span class="grey">灰暗状态</span></div>
+    <label class="toggle"><input id="show-colors" type="checkbox" checked> 显示仅有颜色证据的候选</label>
+    <div class="rail" id="gantt-scroll"><div id="gantt"></div></div>
+    <div id="marker-detail" aria-live="polite"></div>
+    <h2>双方血量随时间变化</h2>
+    <p class="muted">纵轴为血条可见填充比例。点曲线可定位到录像同一时间。</p>
+    <div class="legend"><span class="hp-a" id="hp-a-label"></span><span class="hp-b" id="hp-b-label"></span></div>
+    <div class="rail" id="health-scroll"><canvas id="health" role="img" aria-label="双方血条随时间的折线图"></canvas></div>
+  </section>
+  <section id="game-tree" class="feature">
+    <div class="tree-heading">
+      <div><h2>双方博弈树</h2><p class="muted">选择一段交手，再沿线看双方怎么出招、怎么应对。</p></div>
+      <div class="tree-legend"><span>实际交手</span><span>未发生的备选</span></div>
+    </div>
+    <div id="branches"></div>
+  </section>
+  <section class="method">
+    <h2>证据怎么读</h2>
+    <p>程序按回合读取血条和图标。颜色变化、倒计时和复核结果各有标记。普攻、换位或派生有时只有回放动作可以核实。</p>
+    <p>血条颜色表示可见填充。图标进入冷却提供用招线索，对手随后掉血表示时间关联。控制、打断和每一下伤害的归属需要单独复核。</p>
+    <p><a id="raw-results" href="round-1/results.json">当前回合自动测量</a> · <a href="review-data.json">报告数据 JSON</a></p>
+  </section>
+  <script>
+    const rounds = __ROUNDS__;
+    const video = document.querySelector('#video');
+    const list = document.querySelector('#events');
+    const detail = document.querySelector('#detail');
+    const sources = document.querySelector('#sources');
+    const roundButtons = document.querySelector('#rounds');
+    let pending = null;
+    function append(parent, tag, text, className) {
+      const el = document.createElement(tag);
+      el.textContent = text;
+      if (className) el.className = className;
+      parent.append(el);
+      return el;
+    }
+    function seek(time) {
+      pending = Math.max(0, time - .55);
+      if (video.readyState) video.currentTime = pending;
+    }
+    video.addEventListener('loadedmetadata', () => {
+      if (pending !== null) video.currentTime = pending;
+    });
+    function show(round, item, button, move) {
+      for (const el of list.children) el.setAttribute('aria-pressed', String(el === button));
+      detail.replaceChildren();
+      append(detail, 'h2', `${item.window} · ${item.title}`);
+      append(detail, 'p', item.effect);
+      append(detail, 'p', item.hud, 'muted');
+      if (item.evidencePath) {
+        const evidence = append(detail, 'a', '查看 HUD 证据');
+        evidence.href = item.evidencePath;
+      }
+      if (item.library) append(detail, 'p', item.library, 'muted');
+      sources.replaceChildren();
+      for (const ref of round.sources) {
+        if (ref.url) {
+          const link = append(sources, 'a', ref.name);
+          link.href = ref.url;
+        }
+      }
+      if (move) seek(item.time);
+    }
+    function selectRound(round, button) {
+      for (const el of roundButtons.children) el.setAttribute('aria-pressed', String(el === button));
+      document.querySelector('#match').textContent = round.match;
+      document.querySelector('#raw-results').href = round.resultsPath;
+      list.replaceChildren();
+      for (const item of round.events) {
+        const el = append(list, 'button', '', 'event');
+        el.type = 'button';
+        append(el, 'strong', `${item.window} · ${item.title}`, 'time');
+        append(el, 'small', item.summary);
+        el.onclick = () => {
+          show(round, item, el, true);
+          if (innerWidth <= 850) video.scrollIntoView({block:'nearest'});
+        };
+      }
+      if (round.events.length) show(round, round.events[0], list.firstElementChild, false);
+      else {
+        detail.replaceChildren();
+        sources.replaceChildren();
+        append(detail, 'p', '本回合没有可展示的掉血或复核事件。');
+      }
+      if (window.renderReviewLayers) window.renderReviewLayers(round);
+    }
+    for (const round of rounds) {
+      const button = append(roundButtons, 'button', round.label);
+      button.type = 'button';
+      button.onclick = () => selectRound(round, button);
+    }
+  </script>
+  <script src="review-tree.js"></script>
+  <script src="review-layers.js"></script>
+</body>
+</html>
